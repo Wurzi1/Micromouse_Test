@@ -4,6 +4,7 @@
 
 
 
+
 TPL0102::TPL0102(float highVoltage)
 : highVoltage(highVoltage)
 {
@@ -28,21 +29,20 @@ TPL0102::TPL0102(float highVoltage)
 }
 
 
-
-
-int TPL0102::SetVolatileWiperA(uint8_t position){
+/*int TPL0102::SetVolatileWiperA(uint8_t position){
     log_d("Trying to set WiperA to %d...", position);
-
     if(canWriteAutoRetry()){
         log_d("Setting WiperA...");
         Wire1.beginTransmission(address);
         Wire1.write(registerWiperA);
+
 
         Wire1.write(position);
         if (Wire1.endTransmission(true) != 0) {
             log_e("I2C write failed!");
             return -1;
         }
+        
     }
     else{
         log_e("Failed to set WiperA!");
@@ -53,6 +53,20 @@ int TPL0102::SetVolatileWiperA(uint8_t position){
 
     log_d("WiperA set successfully.");
     return 0;
+}*/
+
+int TPL0102::SetVolatileWiperA(uint8_t position){
+    log_d("Trying to set WiperA to %d...", position);
+    if(canWriteAutoRetry() && I2CT.I2C1Write(address, registerWiperA, position)){
+        wiperPosA = position;
+
+        log_d("WiperA set successfully.");
+        return 0;
+    }
+    else{
+        log_e("Failed to set WiperA!");
+        return -1;
+    }
 }
 
 int TPL0102::SetVolatileWiperB(uint8_t position){
