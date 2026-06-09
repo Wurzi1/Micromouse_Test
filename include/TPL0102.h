@@ -22,36 +22,36 @@ class TPL0102{
         const uint16_t canWriteAutoRetryDelay = 50;
         
 
-        int SetVolatileWiperA(uint8_t position);
-        int SetVolatileWiperB(uint8_t position);
-        int SetNonVolatileWiperA(uint8_t position);
-        int SetNonVolatileWiperB(uint8_t position);
+        bool SetVolatileWiperA(uint8_t position);
+        bool SetVolatileWiperB(uint8_t position);
+        bool SetNonVolatileWiperA(uint8_t position);
+        bool SetNonVolatileWiperB(uint8_t position);
 
-        int getWiperA();
-        int getWiperB();
+        bool getWiperA();
+        bool getWiperB();
 
-        int enableNonVolatileWriting();
-        int disableNonVolatileWriting();
+        bool enableNonVolatileWriting();
+        bool disableNonVolatileWriting();
 
-        int canWrite();
-        int canWriteAutoRetry();
+        bool canWrite();
+        bool canWriteAutoRetry();
 
 
     public:
         TPL0102(float highVoltage);
 
-        int setVoltageA(float voltage);
-        int setVoltageB(float voltage);
-        int setDefaultVoltageA(float voltage);
-        int setDefaultVoltageB(float voltage);
+        bool setVoltageA(float voltage);
+        bool setVoltageB(float voltage);
+        bool setDefaultVoltageA(float voltage);
+        bool setDefaultVoltageB(float voltage);
 
         float getVoltageA();
         float getVoltageB();
         float getDefaultVoltageA();
         float getDefaultVoltageB();
         
-        int enterShutdown();
-        int exitShutdown();
+        bool enterShutdown();
+        bool exitShutdown();
 
         float getHighVoltage();
 };

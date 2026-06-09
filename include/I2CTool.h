@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
 
-
+// currently limited to 256 registers per device
 
 class I2CTool {
     private:
@@ -25,12 +25,14 @@ class I2CTool {
 
         bool I2C0Read(uint8_t Address, uint8_t Register, uint8_t& ReadOutput, bool AutoRetry = true);
         bool I2C0Read(uint8_t Address, uint8_t Register, uint16_t& ReadOutput, bool AutoRetry = true);
-        bool I2C0Read(uint8_t Address, uint8_t Register, size_t Size, uint8_t* ReadOutput, bool AutoRetry = true);
+        bool I2C0Read(uint8_t Address, uint8_t Register, uint8_t* ReadOutput, size_t Size, bool AutoRetry = true);
         bool I2C1Read(uint8_t Address, uint8_t Register, uint8_t& ReadOutput, bool AutoRetry = true);
         bool I2C1Read(uint8_t Address, uint8_t Register, uint16_t& ReadOutput, bool AutoRetry = true);
-        bool I2C1Read(uint8_t Address, uint8_t Register, size_t Size, uint8_t* ReadOutput, bool AutoRetry = true);
+        bool I2C1Read(uint8_t Address, uint8_t Register, uint8_t* ReadOutput, size_t Size, bool AutoRetry = true);
         
-        void flip();
+
+        void flip(uint16_t& Data);
+        void flip(uint8_t* Data, size_t Size);
 
         void I2CScanner();
 };

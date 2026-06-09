@@ -1,6 +1,6 @@
 #include <TPL0102.h>
 #include <I2CTool.h>
-#include <Wire.h>
+#include <Arduino.h>
 
 
 
@@ -10,339 +10,219 @@ TPL0102::TPL0102(float highVoltage)
 {
     log_d("Trying to create TPL0102 object.");
 
-    int ex, en, di;
+    bool ex, en, wpa, wpb, nvw;
 
     ex = exitShutdown();
     en = enableNonVolatileWriting();
 
-    DefaultWiperPosA, wiperPosA =  getWiperA();
-    DefaultWiperPosB, wiperPosB =  getWiperB();
+    wpa = getWiperA();
+    wpb = getWiperB();
+    
+    nvw = disableNonVolatileWriting();
 
-    di = disableNonVolatileWriting();
-
-    if(ex == -1 || en == -1 || di == -1 || DefaultWiperPosA == -1 || wiperPosA == -1 || DefaultWiperPosB == -1 || wiperPosB == -1){
+    if(!ex || ! en || ! wpa || !wpb || !nvw){
         log_e("Failed to create TPL0102 object!");
     }
     else{
         log_i("TPL0102 object initialized successfully.");
     }
+
+    DefaultWiperPosA = wiperPosA;
+    DefaultWiperPosB = wiperPosB;
 }
 
 
-/*int TPL0102::SetVolatileWiperA(uint8_t position){
-    log_d("Trying to set WiperA to %d...", position);
-    if(canWriteAutoRetry()){
-        log_d("Setting WiperA...");
-        Wire1.beginTransmission(address);
-        Wire1.write(registerWiperA);
 
-
-        Wire1.write(position);
-        if (Wire1.endTransmission(true) != 0) {
-            log_e("I2C write failed!");
-            return -1;
-        }
-        
-    }
-    else{
-        log_e("Failed to set WiperA!");
-        return -1;
-    }
-
-    wiperPosA = position;
-
-    log_d("WiperA set successfully.");
-    return 0;
-}*/
-
-int TPL0102::SetVolatileWiperA(uint8_t position){
+bool TPL0102::SetVolatileWiperA(uint8_t position){
     log_d("Trying to set WiperA to %d...", position);
     if(canWriteAutoRetry() && I2CT.I2C1Write(address, registerWiperA, position)){
         wiperPosA = position;
-
         log_d("WiperA set successfully.");
-        return 0;
+        return true;
     }
     else{
         log_e("Failed to set WiperA!");
-        return -1;
+        return false;
     }
 }
 
-int TPL0102::SetVolatileWiperB(uint8_t position){
+bool TPL0102::SetVolatileWiperB(uint8_t position){
     log_d("Trying to set WiperB to %d...", position);
-
-    if(canWriteAutoRetry()){
-        log_d("Setting WiperB...");
-        Wire1.beginTransmission(address);
-        Wire1.write(registerWiperB);
-
-        Wire1.write(position);
-        if (Wire1.endTransmission(true) != 0) {
-            log_e("I2C write failed!");
-            return -1;
-        }
+    if(canWriteAutoRetry() && I2CT.I2C1Write(address, registerWiperB, position)){
+        wiperPosB = position;
+        log_d("WiperB set successfully.");
+        return true;
     }
     else{
         log_e("Failed to set WiperB!");
-        return -1;
+        return false;
     }
-
-    wiperPosB = position;
-
-    log_d("WiperB set successfully.");
-    return 0;
 }
 
-int TPL0102::SetNonVolatileWiperA(uint8_t position){
+bool TPL0102::SetNonVolatileWiperA(uint8_t position){
     log_d("Trying to set non-volatile WiperA to %d...", position);
 
-    if(enableNonVolatileWriting() == -1){
+    if(!enableNonVolatileWriting()){
         log_e("Failed to set non-volatile WiperA!");
-        return -1;
+        return false;
     }
 
-    if(canWriteAutoRetry()){
-        log_d("Setting non-volatile WiperA...");
-        Wire1.beginTransmission(address);
-        Wire1.write(registerWiperA);
-
-        Wire1.write(position);
-        if (Wire1.endTransmission(true) != 0) {
-            log_e("I2C write failed!");
-            return -1;
-        }
+    if(canWriteAutoRetry() && I2CT.I2C1Write(address, registerWiperA, position)){
+        DefaultWiperPosA = position;
     }
     else{
         log_e("Failed to set non-volatile WiperA!");
-        return -1;
+        return false;
     }
 
-    DefaultWiperPosA = position;
-
-    if(disableNonVolatileWriting() == -1){
+    if(!disableNonVolatileWriting()){
         log_e("Set non-volatile WiperA, but failed to disable non-volatile Writing!");
-        return -1;
+        return false;
     }
 
     log_d("Non-volatile WiperA set successfully.");
-    return 0;
+    return true;
 }
 
-int TPL0102::SetNonVolatileWiperB(uint8_t position){
+bool TPL0102::SetNonVolatileWiperB(uint8_t position){
     log_d("Trying to set non-volatile WiperB to %d...", position);
 
-    if(enableNonVolatileWriting() == -1){
+    if(!enableNonVolatileWriting()){
         log_e("Failed to set non-volatile WiperB!");
-        return -1;
+        return false;
     }
 
-    if(canWriteAutoRetry()){
-        log_d("Setting non-volatile WiperB...");
-        Wire1.beginTransmission(address);
-        Wire1.write(registerWiperB);
-
-        Wire1.write(position);
-        if (Wire1.endTransmission(true) != 0) {
-            log_e("I2C write failed!");
-            return -1;
-        }
+    if(canWriteAutoRetry() && I2CT.I2C1Write(address, registerWiperB, position)){
+        DefaultWiperPosB = position;
     }
     else{
         log_e("Failed to set non-volatile WiperB!");
-        return -1;
+        return false;
     }
 
-    DefaultWiperPosB = position;
-
-    if(disableNonVolatileWriting() == -1){
+    if(!disableNonVolatileWriting()){
         log_e("Set non-volatile WiperB, but failed to disable non-volatile Writing!");
-        return -1;
+        return false;
     }
 
     log_d("Non-volatile WiperB set successfully.");
-    return 0;
+    return true;
 }
 
 
-int TPL0102::getWiperA(){
+bool TPL0102::getWiperA(){
     log_d("Reading WiperA...");
-    Wire1.beginTransmission(address);
-
-
-    Wire1.write(registerWiperA);
-    if (Wire1.endTransmission(false) != 0) {
-        log_e("I2C write failed!");
-        return -1;
+    if(I2CT.I2C1Read(address, registerWiperA, wiperPosA)){
+        log_d("WiperA read successfully: %d", wiperPosA);
+        return true;
     }
-
-
-    uint8_t bytesReceived = Wire1.requestFrom(address, (uint8_t)1);
-    if (bytesReceived != 1) {
-        log_e("I2C read failed!");
-        return -1;
+    else{
+        log_e("Failed to read WiperA!");
+        return false;
     }
-
-    wiperPosA = Wire1.read();
-
-    log_d("WiperA read successfully: %d", wiperPosA);
-
-    return wiperPosA;
 }
 
-int TPL0102::getWiperB(){
+bool TPL0102::getWiperB(){
     log_d("Reading WiperB...");
-    Wire1.beginTransmission(address);
-
-
-    Wire1.write(registerWiperB);
-    if (Wire1.endTransmission(false) != 0) {
-        log_e("I2C write failed!");
-        return -1;
+    if(I2CT.I2C1Read(address, registerWiperB, wiperPosB)){
+        log_d("WiperB read successfully: %d", wiperPosB);
+        return true;
     }
-
-
-    uint8_t bytesReceived = Wire1.requestFrom(address, (uint8_t)1);
-    if (bytesReceived != 1) {
-        log_e("I2C read failed!");
-        return -1;
+    else{
+        log_e("Failed to read WiperB!");
+        return false;
     }
-
-    wiperPosB = Wire1.read();
-
-    log_d("WiperB read successfully: %d", wiperPosA);
-
-    return wiperPosB;
 }
 
 
-int TPL0102::enableNonVolatileWriting(){
+bool TPL0102::enableNonVolatileWriting(){
     log_d("Trying to enable non-volatile writing...");
 
-    if(canWriteAutoRetry()){
-        uint8_t output = 0b01000000;
-        if(shutdownEnabled){
-            output = 0b00000000;
-        }
+    uint8_t output = 0b01000000;
+    if(shutdownEnabled){
+        output = 0b00000000;
+    }
 
-        log_d("Enabling non-volatile writing...");
-        Wire1.beginTransmission(address);
-        Wire1.write(registerSettings);
-
-        Wire1.write(output);
-        if (Wire1.endTransmission(true) != 0) {
-            log_e("I2C write failed!");
-            return -1;
-        }
+    if(canWriteAutoRetry() && I2CT.I2C1Write(address, registerSettings, output)){
+        log_d("Non-volatile writing enabled successfully.");
+        return true;
     }
     else{
         log_e("Failed to enable non-volatile writing!");
-        return -1;
+        return false;
     }
-
-    log_d("Non-volatile writing enabled successfully.");
-    return 0;
 }
 
-int TPL0102::disableNonVolatileWriting(){
+bool TPL0102::disableNonVolatileWriting(){
     log_d("Trying to disable non-volatile writing...");
 
-    if(canWriteAutoRetry()){
-        uint8_t output = 0b11000000;
-        if(shutdownEnabled){
-            output = 0b10000000;
-        }
+    uint8_t output = 0b11000000;
+    if(shutdownEnabled){
+        output = 0b10000000;
+    }
 
-        log_d("Disabling non-volatile writing...");
-        Wire1.beginTransmission(address);
-        Wire1.write(registerSettings);
-
-        Wire1.write(output);
-        if (Wire1.endTransmission(true) != 0) {
-            log_e("I2C write failed!");
-            return -1;
-        }
+    if(canWriteAutoRetry() && I2CT.I2C1Write(address, registerSettings, output)){
+        log_d("Non-volatile writing disabled successfully.");
+        return true;
     }
     else{
         log_e("Failed to disable non-volatile writing!");
-        return -1;
+        return false;
     }
-
-    log_d("Non-volatile writing disabled successfully.");
-    return 0;
 }
 
 
-int TPL0102::canWrite(){
+bool TPL0102::canWrite(){
     log_d("Checking if writable...");
 
-    Wire1.beginTransmission(address);
-
-    Wire1.write(registerSettings);
-    if (Wire1.endTransmission(false) != 0) {
-        log_e("I2C write failed!");
-        return -1;
+    uint8_t currentSettings;
+    if(!I2CT.I2C1Read(address, registerSettings, currentSettings)){
+        log_e("Failed to read WIP!");
+        return false;
     }
-
-
-    uint8_t bytesReceived = Wire1.requestFrom(address, (uint8_t)1);
-    if (bytesReceived != 1) {
-        log_e("I2C read failed!");
-        return -1;
-    }
-
-    uint8_t currentSettings = Wire1.read();
 
     uint8_t WIP = (currentSettings & registerSettings_WIPMask) >> 5;
-
-
 
     log_d("WIP read successfully: %d", WIP);
 
     if(WIP){
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
-int TPL0102::canWriteAutoRetry(){
+bool TPL0102::canWriteAutoRetry(){
     log_d("Autor-Retry Checking if writable...");
-
     for(int i = 0; i < canWriteAutoRetryAttempts; i++){
-        int canW = canWrite();
-        if(canW && canW != -1){
-            return 1;
-        }
-        else if(canW == -1){
-            log_e("Something went wrong, waiting %dms and trying again!", canWriteAutoRetryDelay);
-            delay(canWriteAutoRetryDelay);
+        if(canWrite()){
+            log_d("Writable confirmed after %d tries.", ++i);
+            return true;
         }
         else{
-            log_e("WIP is set high, waiting %dms and trying again!", canWriteAutoRetryDelay);
+            log_e("WIP is set high (or something went wrong), waiting %dms and trying again!", canWriteAutoRetryDelay);
             delay(canWriteAutoRetryDelay);
         }
     }
-
     log_e("After %d attempts there was no canWrite resolution!", canWriteAutoRetryAttempts);
-    return 0;
+    return false;
 }
 
 
 
 
-int TPL0102::setVoltageA(float voltage){
+bool TPL0102::setVoltageA(float voltage){
     log_d("Trying to set VoltageA to %fV", voltage);
 
     if(voltage > highVoltage){
         log_e("Voltage target is higher that highVoltage!");
         log_e("Failed to set VoltageA!");
-        return -1;
+        return false;
     }
 
     if(voltage < 0.0f){
         log_e("Voltage target is negative!");
         log_e("Failed to set VoltageA!");
-        return -1;
+        return false;
     }
 
     float estPosf = (voltage / highVoltage) * 256;
@@ -352,29 +232,29 @@ int TPL0102::setVoltageA(float voltage){
     uint8_t estPos = static_cast<uint8_t>(estPosf);
 
 
-    if(SetVolatileWiperA(estPos) == -1){
+    if(!SetVolatileWiperA(estPos)){
         log_e("Failed to set VoltageA!");
-        return -1;
+        return false;
     }
 
     float actualVoltage = highVoltage * (estPosf / 256);
     log_d("VoltageA set to %fV", actualVoltage);
-    return 0;
+    return true;
 }
 
-int TPL0102::setVoltageB(float voltage){
+bool TPL0102::setVoltageB(float voltage){
     log_d("Trying to set VoltageB to %fV", voltage);
 
     if(voltage > highVoltage){
         log_e("Voltage target is higher that highVoltage!");
         log_e("Failed to set VoltageB!");
-        return -1;
+        return false;
     }
 
     if(voltage < 0.0f){
         log_e("Voltage target is negative!");
         log_e("Failed to set VoltageB!");
-        return -1;
+        return false;
     }
 
     float estPosf = (voltage / highVoltage) * 256;
@@ -383,29 +263,29 @@ int TPL0102::setVoltageB(float voltage){
 
     uint8_t estPos = static_cast<uint8_t>(estPosf);
 
-    if(SetVolatileWiperB(estPos) == -1){
+    if(!SetVolatileWiperB(estPos)){
         log_e("Failed to set VoltageB!");
-        return -1;
+        return false;
     }
 
     float actualVoltage = highVoltage * (estPosf / 256);
     log_d("VoltageB set to %fV", actualVoltage);
-    return 0;
+    return true;
 }
 
-int TPL0102::setDefaultVoltageA(float voltage){
+bool TPL0102::setDefaultVoltageA(float voltage){
     log_d("Trying to set Default-VoltageA to %fV", voltage);
 
     if(voltage > highVoltage){
         log_e("Voltage target is higher that highVoltage!");
         log_e("Failed to set Default-VoltageA!");
-        return -1;
+        return false;
     }
 
     if(voltage < 0.0f){
         log_e("Voltage target is negative!");
         log_e("Failed to set Default-VoltageA!");
-        return -1;
+        return false;
     }
 
     float estPosf = (voltage / highVoltage) * 256;
@@ -414,29 +294,29 @@ int TPL0102::setDefaultVoltageA(float voltage){
 
     uint8_t estPos = static_cast<uint8_t>(estPosf);
 
-    if(SetNonVolatileWiperA(estPos) == -1){
+    if(!SetNonVolatileWiperA(estPos)){
         log_e("Failed to set Default-VoltageA!");
-        return -1;
+        return false;
     }
 
     float actualVoltage = highVoltage * (estPosf / 256);
     log_d("Default-VoltageA set to %fV", actualVoltage);
-    return 0;
+    return true;
 }
 
-int TPL0102::setDefaultVoltageB(float voltage){
+bool TPL0102::setDefaultVoltageB(float voltage){
     log_d("Trying to set Default-VoltageB to %fV", voltage);
     
     if(voltage > highVoltage){
         log_e("Voltage target is higher that highVoltage!");
         log_e("Failed to set Default-VoltageB!");
-        return -1;
+        return false;
     }
 
     if(voltage < 0.0f){
         log_e("Voltage target is negative!");
         log_e("Failed to set Default-VoltageB!");
-        return -1;
+        return false;
     }
 
     float estPosf = (voltage / highVoltage) * 256;
@@ -445,14 +325,14 @@ int TPL0102::setDefaultVoltageB(float voltage){
 
     uint8_t estPos = static_cast<uint8_t>(estPosf);
 
-    if(SetNonVolatileWiperB(estPos) == -1){
+    if(!SetNonVolatileWiperB(estPos)){
         log_e("Failed to set Default-VoltageB!");
-        return -1;
+        return false;
     }
 
     float actualVoltage = highVoltage * (estPosf / 256);
     log_d("Default-VoltageB set to %fV", actualVoltage);
-    return 0;
+    return true;
 }
 
 
@@ -495,58 +375,34 @@ float TPL0102::getDefaultVoltageB(){
 
 
 
-int TPL0102::enterShutdown(){
+bool TPL0102::enterShutdown(){
     log_d("Trying to enter shutdown");
-    
-    if(canWriteAutoRetry()){
-        uint8_t output = 0b10000000;
+    const uint8_t output = 0b10000000;
 
-        log_d("Entering Shutdown...");
-        Wire1.beginTransmission(address);
-        Wire1.write(registerSettings);
-
-        Wire1.write(output);
-        if (Wire1.endTransmission(true) != 0) {
-            log_e("I2C write failed!");
-            return -1;
-        }
+    if(canWriteAutoRetry() && I2CT.I2C1Write(address, registerSettings, output)){
+        shutdownEnabled = true;
+        log_d("Entered shutdown successfully.");
+        return true;
     }
     else{
         log_e("Failed to enter shutdown!");
-        return -1;
+        return false;
     }
-
-    shutdownEnabled = true;
-
-    log_d("Entered shutdown successfully.");
-    return 0;
 }
 
-int TPL0102::exitShutdown(){
+bool TPL0102::exitShutdown(){
     log_d("Trying to exit shutdown");
-    
-    if(canWriteAutoRetry()){
-        uint8_t output = 0b11000000;
+    const uint8_t output = 0b11000000;
 
-        log_d("Exiting Shutdown...");
-        Wire1.beginTransmission(address);
-        Wire1.write(registerSettings);
-
-        Wire1.write(output);
-        if (Wire1.endTransmission(true) != 0) {
-            log_e("I2C write failed!");
-            return -1;
-        }
+    if(canWriteAutoRetry() && I2CT.I2C1Write(address, registerSettings, output)){
+        shutdownEnabled = false;
+        log_d("Exited shutdown successfully.");
+        return true;
     }
     else{
         log_e("Failed to exit shutdown!");
-        return -1;
+        return false;
     }
-
-    shutdownEnabled = false;
-
-    log_d("Exited shutdown successfully.");
-    return 0;
 }
 
 float TPL0102::getHighVoltage(){

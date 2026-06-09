@@ -1,6 +1,7 @@
 #include <I2CTool.h>
 #include <Wire.h>
 
+
 I2CTool::I2CTool(unsigned int I2C0ClockSpeed, unsigned int I2C1ClockSpeed)
 {
     log_d("Trying to create I2CTool object.");
@@ -337,12 +338,12 @@ bool I2CTool::I2C0Read(uint8_t Address, uint8_t Register, uint16_t& ReadOutput, 
     }
 }
 
-bool I2CTool::I2C0Read(uint8_t Address, uint8_t Register, size_t Size, uint8_t* ReadOutput, bool AutoRetry){
+bool I2CTool::I2C0Read(uint8_t Address, uint8_t Register, uint8_t* ReadOutput, size_t Size, bool AutoRetry){
     if(AutoRetry){
         log_d("Trying to read on I2C0 with Auto-Retry...");
 
         for(int i = 0; i < READRETRYATTEMPTS; i++){
-            if(I2C0Read(Address, Register, Size, ReadOutput, false)){
+            if(I2C0Read(Address, Register, ReadOutput, Size, false)){
                 log_d("I2C0 Auto-Retry read success after %d tries.", ++i);
                 return true;
             }
@@ -472,12 +473,12 @@ bool I2CTool::I2C1Read(uint8_t Address, uint8_t Register, uint16_t& ReadOutput, 
     }
 }
 
-bool I2CTool::I2C1Read(uint8_t Address, uint8_t Register, size_t Size, uint8_t* ReadOutput, bool AutoRetry){
+bool I2CTool::I2C1Read(uint8_t Address, uint8_t Register, uint8_t* ReadOutput, size_t Size, bool AutoRetry){
     if(AutoRetry){
         log_d("Trying to read on I2C1 with Auto-Retry...");
 
         for(int i = 0; i < READRETRYATTEMPTS; i++){
-            if(I2C1Read(Address, Register, Size, ReadOutput, false)){
+            if(I2C1Read(Address, Register, ReadOutput, Size, false)){
                 log_d("I2C1 Auto-Retry read success after %d tries.", ++i);
                 return true;
             }
@@ -519,6 +520,16 @@ bool I2CTool::I2C1Read(uint8_t Address, uint8_t Register, size_t Size, uint8_t* 
 }
 
 
+void I2CTool::flip(uint16_t& Data){
+    uint16_t tmp = Data;
+    Data = (Data >> 8) | (tmp << 8);
+}
+
+void I2CTool::flip(uint8_t* Data, size_t Size){
+    for(int i = 0; i < Size / 2; i++){
+        std::swap(Data[i], Data[Size - i - 1]);
+    }
+}
 
 void I2CTool::I2CScanner(){
     uint8_t Devices0 = 0;

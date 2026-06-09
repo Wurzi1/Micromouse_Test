@@ -315,17 +315,16 @@ void setup() {
   log_i("BEGIN: log_i");
 
 
-  I2CTool toolw(200000, 50000);
-  toolw.I2CScanner();
+  I2CT.I2CScanner();
 
   TPL0102 tpl(3.4);
 
-  delay(5000);
+  delay(50000);
 
   float voltage = tpl.getVoltageA();
   log_i("VoltageA: %f", voltage);
 
-  tpl.setVoltageA(3.0f);
+  tpl.setVoltageA(2.0f);
 
   voltage = tpl.getVoltageA();
   log_i("VoltageA: %f", voltage);
@@ -342,7 +341,7 @@ void setup() {
 
   tpl.enterShutdown();
 
-  delay(10000);
+  delay(80000);
 
   tpl.exitShutdown();
 }
